@@ -41,9 +41,7 @@ def dialog_tags(update,context):
         ]
 
     if tag == "Не хочу писать тег, хочу сразу все посты":
-        context.user_data["dialog"] = {
-            "tag":tag
-        }
+        context.user_data["dialog"]['tag'] = tag
         update.message.reply_text('Окей! Переходим сразу к фильтрации!',
         reply_markup = keyboard(reply_keyboard)
         )
@@ -54,9 +52,8 @@ def dialog_tags(update,context):
         return "tag"
 
     else:
-        context.user_data["dialog"] = {
-            "tag":tag
-        }
+        context.user_data["dialog"]['tag'] = tag
+            
 
         update.message.reply_text(
             f'Отлично! Ты выбрал тег "{tag}". Давай отфильтруем посты!',
@@ -68,6 +65,7 @@ def filters(update, context):
     filters = ["Фильтр по дате (сначала новое)",
         "Фильтр по просмотрам (сначала топ просмотров)",
         "Фильтр по рейтингу (сначала наибольший)",
+        "Фильтр по комментариям (сначала много)",
         "Не надо сортировку, хочу простыню"
         ]
     filter = update.message.text
@@ -75,18 +73,15 @@ def filters(update, context):
         update.message.reply_text('Введи правильный фильтр')
         return "filters"
     elif filter == "Не надо сортировку, хочу простыню":
-        context.user_data["dialog"] = {
-            "filter":filter
-        }
+        context.user_data["dialog"]['filter'] = filter
         update.message.reply_text('Окей! Переходим сразу к фильтрации!')
         
         return "filters"
     else:
 
-        context.user_data["dialog"] = {
-            "filter": filter
-        }
+        context.user_data["dialog"]['filter'] = filter
 
         update.message.reply_text(f'Отлично! Фильтруем по {filter.split()[2]}. 1 секунду...')
+        print(context.user_data)
 
     
