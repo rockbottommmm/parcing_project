@@ -12,3 +12,8 @@ def greet_user(update, context):
 def talk_to_me(update,context):
     text = update.message.text
     update.message.reply_text(f'Мы пока не можем обработать "{text}", но мы очень стараемся!')
+
+# def dialog_start_inline(update,context):
+#     update.callback_query.answer()
+#     result = update.callback_query.data
+#     update.callback_query.edit_message_caption(caption = f"Отлично! Ты выбрал {result}")
