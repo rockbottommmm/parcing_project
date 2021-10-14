@@ -1,12 +1,8 @@
-from telegram import replykeyboardmarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import replykeyboardmarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from utils import keyboard, inline_keyboard_category
 from telegram.ext import ConversationHandler
-from mongo_settings import MyCluster
-from pymongo import MongoClient
+from mongo import item_tags, db_for_work
 
-# cluster = MongoClient(MyCluster)
-# db = cluster['Parcing_db']
-# collection = db['Posts_info']
 
 def restart (update,context):
     reply_keyboard = [["Выбрать категорию"]]
@@ -39,10 +35,6 @@ def dialog_category(update,context):
         )
         return "tag"
 
-tags = ["Айти", "Еда"]
-#здесь будет проверка на правильность тэга из монго
-
-
 def dialog_tags(update,context):
     tag = update.message.text
     reply_keyboard = [["Фильтр по дате (сначала новое)"],
@@ -62,7 +54,7 @@ def dialog_tags(update,context):
     elif tag == "Вернуться в начало":
         return restart(update,context)
 
-    elif tag not in tags:
+    elif tag not in item_tags:
         update.message.reply_text('Извини, но такого тега у нас нет.. Попробуй еще раз!')
         return "tag"
 
@@ -95,7 +87,17 @@ def dialog_filters(update, context):
         reply_keyboard = [["Выбрать категорию"]]
         update.message.reply_text('Окей! Вот результат, 1 секунду...',
         reply_markup = keyboard(reply_keyboard))
-        #Сюда вывод из монго
+        
+        #вывод постов по тэгу
+        for elem in db_for_work:
+            tag = context.user_data['dialog']['tag']
+            if tag in elem['item_tags']:
+                update.message.reply_text(f"""<b>Название поста:</b> {elem["item_title"]}\n<b>Теги поста:</b> \
+{", ".join(elem["item_tags"])}\n<b>URL поста:</b> {elem["item_url"]}\n\
+<b>Количество просмотров:</b> {elem["item_views"]}\n<b>Рейтинг поста:</b> {elem["item_rating"]}""",
+                    parse_mode = ParseMode.HTML,
+                reply_markup = keyboard(reply_keyboard))
+
         return ConversationHandler.END
     
     
@@ -103,10 +105,18 @@ def dialog_filters(update, context):
 
         context.user_data["dialog"]['filter'] = filter
         reply_keyboard = [["Выбрать категорию"]]
-        update.message.reply_text(f'Отлично! Фильтруем по {filter.split()[2]}. 1 секунду...',
-        reply_markup = keyboard(reply_keyboard))
+        update.message.reply_text(f'Отлично! Фильтруем по {filter.split()[2]}, 1 секунду...')
+        for elem in db_for_work:
+            tag = context.user_data['dialog']['tag']
+            if tag in elem['item_tags']:
+                update.message.reply_text(f"""<b>Название поста:</b> {elem["item_title"]}\n<b>Теги поста:</b> \
+{", ".join(elem["item_tags"])}\n<b>URL поста:</b> {elem["item_url"]}\n\
+<b>Количество просмотров:</b> {elem["item_views"]}\n<b>Рейтинг поста:</b> {elem["item_rating"]}""",
+                    parse_mode = ParseMode.HTML,
+                reply_markup = keyboard(reply_keyboard))
 
-        print(context.user_data)
+        
+                print(context.user_data)
         #Сюда вывод из монго
         return ConversationHandler.END
 
