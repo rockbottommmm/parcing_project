@@ -1,8 +1,6 @@
-from telegram import replykeyboardmarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
-from utils import keyboard, inline_keyboard_category
+from utils import keyboard, return_result
 from telegram.ext import ConversationHandler
-from mongo import item_tags, db_for_work
-
+from mongo import (item_tags, collection)
 
 def restart (update,context):
     reply_keyboard = [["Выбрать категорию"]]
@@ -40,6 +38,7 @@ def dialog_tags(update,context):
     reply_keyboard = [["Фильтр по дате (сначала новое)"],
         ["Фильтр по просмотрам (сначала топ просмотров)"],
         ["Фильтр по рейтингу (сначала наибольший)"],
+        ["Фильтр по комментариям (сначала много)"],
         ["Не надо сортировку, хочу простыню"],
         ["Вернуться в начало"]
         ]
@@ -81,43 +80,55 @@ def dialog_filters(update, context):
         return restart(update,context)
     elif filter not in filters:
         update.message.reply_text('Введи правильный фильтр')
-        return "filters"
-    elif filter == "Не надо сортировку, хочу простыню":
-        context.user_data["dialog"]['filter'] = filter
-        reply_keyboard = [["Выбрать категорию"]]
-        update.message.reply_text('Окей! Вот результат, 1 секунду...',
-        reply_markup = keyboard(reply_keyboard))
-        
-        #вывод постов по тэгу
-        for elem in db_for_work:
-            tag = context.user_data['dialog']['tag']
-            if tag in elem['item_tags']:
-                update.message.reply_text(f"""<b>Название поста:</b> {elem["item_title"]}\n<b>Теги поста:</b> \
-{", ".join(elem["item_tags"])}\n<b>URL поста:</b> {elem["item_url"]}\n\
-<b>Количество просмотров:</b> {elem["item_views"]}\n<b>Рейтинг поста:</b> {elem["item_rating"]}""",
-                    parse_mode = ParseMode.HTML,
-                reply_markup = keyboard(reply_keyboard))
-
-        return ConversationHandler.END
-    
+        return "filters"    
     
     else:
-
-        context.user_data["dialog"]['filter'] = filter
         reply_keyboard = [["Выбрать категорию"]]
-        update.message.reply_text(f'Отлично! Фильтруем по {filter.split()[2]}, 1 секунду...')
-        for elem in db_for_work:
-            tag = context.user_data['dialog']['tag']
-            if tag in elem['item_tags']:
-                update.message.reply_text(f"""<b>Название поста:</b> {elem["item_title"]}\n<b>Теги поста:</b> \
-{", ".join(elem["item_tags"])}\n<b>URL поста:</b> {elem["item_url"]}\n\
-<b>Количество просмотров:</b> {elem["item_views"]}\n<b>Рейтинг поста:</b> {elem["item_rating"]}""",
-                    parse_mode = ParseMode.HTML,
-                reply_markup = keyboard(reply_keyboard))
-
+        tag = context.user_data['dialog']['tag']
+        context.user_data["dialog"]['filter'] = filter
         
-                print(context.user_data)
-        #Сюда вывод из монго
+        if filter == "Не надо сортировку, хочу простыню":
+            if context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection.find().limit(10):
+                    return_result(elem,update,tag,reply_keyboard)
+            else:
+                for elem in collection.find({"item_tags":tag}).limit(10):
+                    return_result(elem,update,tag,reply_keyboard)
+
+        elif filter == "Фильтр по дате (сначала новое)":
+            if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection.find({"item_tags":tag}).sort('item_date_timestamp',-1).limit(10):
+                    return_result(elem,update,tag, reply_keyboard)
+            else:
+                for elem in collection.find().sort('item_date_timestamp',-1).limit(10):
+                    return_result(elem,update,tag,reply_keyboard)
+
+        elif filter == "Фильтр по рейтингу (сначала наибольший)":
+            if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection.find({"item_tags":tag}).sort('item_rating',-1).limit(10):
+                    return_result(elem,update, tag, reply_keyboard) 
+            else:
+                for elem in collection.find().sort('item_rating',-1).limit(10):
+                    return_result(elem,update,tag,reply_keyboard)
+        
+        elif filter == "Фильтр по просмотрам (сначала топ просмотров)":
+            if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection.find({"item_tags":tag}).sort('item_views',-1).limit(10):
+                    return_result(elem,update,tag,reply_keyboard)
+            else:
+                for elem in collection.find().sort('item_views',-1).limit(10):
+                    return_result(elem,update,tag,reply_keyboard)
+        
+        elif filter == "Фильтр по комментариям (сначала много)":            
+            if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection.find({"item_tags":tag}).sort('item_comments',-1).limit(10):
+                    return_result(elem,update,tag,reply_keyboard)
+            else:
+                for elem in collection.find().sort('item_comments',-1).limit(10):
+                    return_result(elem,update,tag,reply_keyboard)
+        
+
+        print(context.user_data)
         return ConversationHandler.END
 
 def dialog_fallback(update,context):
