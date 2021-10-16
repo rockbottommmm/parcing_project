@@ -12,14 +12,18 @@ fresh_item_tags=[]
 result_hot = 0
 result_fresh = 0
 for elem in collection_hot.find():
-    for tag in elem['item_tags']:
+    for tag in elem["item_tags"]:
         hot_item_tags.append(tag)
-#        result_hot +=1
+        #result_hot +=1
 
 for elem in collection_fresh.find():
     for tag in elem['item_tags']:
         fresh_item_tags.append(tag)
-#        result_fresh +=1
+        #result_fresh +=1
+
+# for elem in collection_hot.find():
+#     print(elem)
+
 # print(hot_item_tags)
 # print(result_hot)
 # print("--------------")

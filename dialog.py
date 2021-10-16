@@ -100,62 +100,93 @@ def dialog_filters(update, context):
         return "filters"    
     
     else:
-        reply_keyboard = [["Выбрать категорию"]]
-        tag = context.user_data['dialog']['tag']
-        context.user_data["dialog"]['filter'] = filter
-        if context.user_data["dialog"]["category"] == "Горячее":
-            if filter == "Не надо сортировку, хочу простыню":
-                if context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
-                    for elem in collection_hot.find().limit(10):
-                        return_hot(elem,update,tag,reply_keyboard)
-                else:
-                    for elem in collection_hot.find({"item_tags":tag}).limit(10):
-                        return_hot(elem,update,tag,reply_keyboard)
-
-            elif filter == "Фильтр по дате (сначала новое)":
-                if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
-                    for elem in collection_hot.find({"item_tags":tag}).sort('item_date_timestamp',-1).limit(10):
-                        return_hot(elem,update,tag, reply_keyboard)
-                else:
-                    for elem in collection_hot.find().sort('item_date_timestamp',-1).limit(10):
-                        return_hot(elem,update,tag,reply_keyboard)
-
-            elif filter == "Фильтр по рейтингу (сначала наибольший)":
-                if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
-                    for elem in collection_hot.find({"item_tags":tag}).sort('item_rating',-1).limit(10):
-                        return_hot(elem,update, tag, reply_keyboard) 
-                else:
-                    for elem in collection_hot.find().sort('item_rating',-1).limit(10):
-                        return_hot(elem,update,tag,reply_keyboard)
+        reply_keyboard = [["Вернуться в начало"]]
         
-            elif filter == "Фильтр по просмотрам (сначала топ просмотров)":
-                if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
-                    for elem in collection_hot.find({"item_tags":tag}).sort('item_views',-1).limit(10):
-                        return_hot(elem,update,tag,reply_keyboard)
-                else:
-                    for elem in collection_hot.find().sort('item_views',-1).limit(10):
-                        return_hot(elem,update,tag,reply_keyboard)
+        context.user_data["dialog"]['filter'] = filter
+        update.message.reply_text("Отлично! Теперь напиши количество постов",
+        reply_markup = keyboard(reply_keyboard))
+        return "posts_number"
+
+def dialog_numbers(update,context):
+    tag = context.user_data['dialog']['tag']
+    posts_amount = update.message.text
+    reply_keyboard = [["Вернуться в начало"], ["Вернуться на шаг назад"]]
+    filter = context.user_data['dialog']['filter']
+
+
+    if posts_amount == "Вернуться в начало":
+        return restart(update,context)
+    try:
+        posts_amount = int(posts_amount)
+    except:
+        update.message.reply_text("Введи цифру от 1 до 30")
+        return "posts_number"
+    posts_amount = int(posts_amount)
+    if posts_amount < 1 or posts_amount > 30:
+        update.message.reply_text("Введи цифру от 1 до 30")
+        return "posts_number"
+    context.user_data['dialog']['posts_number'] = [posts_amount]
+
+    if context.user_data["dialog"]["category"] == "Горячее":
+        if filter == "Не надо сортировку, хочу простыню":
+            if context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection_hot.find().limit(posts_amount):
+                    return_hot(elem,update,tag,reply_keyboard)
+            else:
+                for elem in collection_hot.find({"item_tags":tag}).limit(posts_amount):
+                    return_hot(elem,update,tag,reply_keyboard)
+
+        elif filter == "Фильтр по дате (сначала новое)":
+            if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection_hot.find({"item_tags":tag}).sort('item_date_timestamp',-1).limit(posts_amount):
+                    return_hot(elem,update,tag, reply_keyboard)
+            else:
+                for elem in collection_hot.find().sort('item_date_timestamp',-1).limit(posts_amount):
+                    return_hot(elem,update,tag,reply_keyboard)
+
+        elif filter == "Фильтр по рейтингу (сначала наибольший)":
+            if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection_hot.find({"item_tags":tag}).sort('item_rating',-1).limit(posts_amount):
+                    return_hot(elem,update, tag, reply_keyboard) 
+            else:
+                for elem in collection_hot.find().sort('item_rating',-1).limit(posts_amount):
+                    return_hot(elem,update,tag,reply_keyboard)
+        
+        elif filter == "Фильтр по просмотрам (сначала топ просмотров)":
+            if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection_hot.find({"item_tags":tag}).sort('item_views',-1).limit(posts_amount):
+                    return_hot(elem,update,tag,reply_keyboard)
+            else:
+                for elem in collection_hot.find().sort('item_views',-1).limit(posts_amount):
+                    return_hot(elem,update,tag,reply_keyboard)
             
-            elif filter == "Фильтр по комментариям (сначала много)":            
-                if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
-                    for elem in collection_hot.find({"item_tags":tag}).sort('item_comments',-1).limit(10):
-                        return_hot(elem,update,tag,reply_keyboard)
-                else:
-                    for elem in collection_hot.find().sort('item_comments',-1).limit(10):
-                        return_hot(elem,update,tag,reply_keyboard)
+        elif filter == "Фильтр по комментариям (сначала много)":            
+            if not context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection_hot.find({"item_tags":tag}).sort('item_comments',-1).limit(posts_amount):
+                    return_hot(elem,update,tag,reply_keyboard)
+            else:
+                for elem in collection_hot.find().sort('item_comments',-1).limit(posts_amount):
+                    return_hot(elem,update,tag,reply_keyboard)
+        elif update.message.text == "Вернуться на шаг назад":
+            update.message.reply_text("Хорошо, выбирай количество постов")
+            return "posts_number"
+        elif posts_amount == "Вернуться в начало":
+            return restart(update,context)
+        else:
             return ConversationHandler.END
+            
 
-        elif context.user_data["dialog"]["category"] == "Свежее":
+    elif context.user_data["dialog"]["category"] == "Свежее":
 
-            if filter == "Выдать простыню":
-                if context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
-                    for elem in collection_fresh.find().limit(10):
-                        return_fresh(elem,update,tag,reply_keyboard)
-                else:
-                    for elem in collection_fresh.find({"item_tags":tag}).limit(10):
-                        return_fresh(elem,update,tag,reply_keyboard)
-            print(context.user_data)
-            return ConversationHandler.END
+        if filter == "Выдать простыню":
+            if context.user_data['dialog']['tag'] == "Не хочу писать тег, хочу сразу все посты":
+                for elem in collection_fresh.find().sort('item_date_timestamp',-1).limit(posts_amount):
+                    return_fresh(elem,update,tag,reply_keyboard)
+            else:
+                for elem in collection_fresh.find({"item_tags":tag}).sort('item_date_timestamp',-1).limit(posts_amount):
+                    return_fresh(elem,update,tag,reply_keyboard)
+        print(context.user_data)
+        return ConversationHandler.END
 
 def dialog_fallback(update,context):
     update.message.reply_text("Не надо лишнего, плиз")

@@ -3,7 +3,8 @@ import settings
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, 
                           CallbackQueryHandler)
 from handlers import greet_user, talk_to_me
-from dialog import dialog_start, dialog_category, dialog_tags, dialog_filters, dialog_fallback
+from dialog import dialog_start, dialog_category, dialog_tags, dialog_filters, dialog_fallback, dialog_numbers
+from utils import return_fresh, return_hot
 
 logging.basicConfig(format='%(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO,
@@ -24,7 +25,8 @@ def main():
         states = {
             "category": [MessageHandler(Filters.text, dialog_category)],
             "tag": [MessageHandler(Filters.text, dialog_tags)],
-            "filters": [MessageHandler(Filters.text, dialog_filters)]
+            "filters": [MessageHandler(Filters.text, dialog_filters)],
+            "posts_number": [MessageHandler(Filters.text, dialog_numbers)]
 
 
         },
