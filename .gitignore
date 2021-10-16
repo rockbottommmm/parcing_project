@@ -6,5 +6,8 @@ test.py
 index_selenium.html
 posts_dict.json
 bot.txt
+bot.log
+hot_posts_dict.json
+
 
 __pycache__
