@@ -5,6 +5,19 @@ from bs4 import BeautifulSoup as bs
 from datetime import datetime
 import time
 import json
+from pymongo import MongoClient
+from settings import MyCluster
+import certifi
+
+
+cluster = MongoClient(MyCluster)
+cert = certifi.where()
+
+cluster = MongoClient(MyCluster, tlsCAFile=cert)
+db = cluster["Parcing_db"]
+collection_hot = db["Hot_posts_info"]
+collection_fresh = db["Fresh_posts_info"]
+
 
 def parse_new():
     #new_posts = []
@@ -67,6 +80,14 @@ def parse_new():
             }
             #new_posts.append(posts_dict)
             new_dict.update(posts_dict)
+
+            collection_fresh.insert_one({
+                'item_title': item_title,
+                'item_url': item_url,
+                'item_date_timestamp': item_date_timestamp,
+                'item_comments': int(item_comments),
+                'item_tags': tags
+            })
 
             with open('posts_dict.json', 'w') as file:
                 json.dump(new_dict, file, indent=4, ensure_ascii=False)
@@ -231,6 +252,17 @@ def parse_hot():
             }
             #new_posts.append(posts_dict)
             new_dict.update(posts_dict)
+            
+            collection_hot.insert_one({
+                'item_title': item_title,
+                'item_url': item_url,
+                'item_date_timestamp': item_date_timestamp,
+                'item_comments': int(item_comments),
+                'item_tags': tags,
+                'item_views': int(item_views),
+                'item_rating': int(item_rating)
+            }
+            )
 
             with open('hot_posts_dict.json', 'w') as file:
                 json.dump(new_dict, file, indent=4, ensure_ascii=False)
@@ -333,9 +365,9 @@ def check_hot_posts():
     return fresh_posts
 
 def main():
-    #parse_new()
+    parse_new()
     #check_new_posts()
-    parse_hot()
+    #parse_hot()
     #check_hot_posts()
 
 
