@@ -1,6 +1,8 @@
-from utils import keyboard, return_fresh, return_hot
-from telegram.ext import ConversationHandler
 from mongo import (fresh_item_tags, hot_item_tags, collection_hot, collection_fresh)
+from random import choice, sample
+from telegram.parsemode import ParseMode
+from telegram.ext import ConversationHandler
+from utils import keyboard, return_fresh, return_hot, converter
 
 def restart (update,context):
     reply_keyboard = [["Выбрать категорию"]]
@@ -28,10 +30,24 @@ def dialog_category(update,context):
             "category":category
         }
         reply_keyboard = [["Не хочу писать тег, хочу сразу все посты"],["Вернуться в начало"]]
-        update.message.reply_text(f"Отлично! Ты выбрал '{category.strip()}', напиши желаемый тег",
-        reply_markup = keyboard(reply_keyboard)
-        )
-        return "tag"
+        if category == "Горячее":
+            update.message.reply_text(f"Отлично! Ты выбрал '{category.strip()}', напиши желаемый тег, \
+например <b>{choice(hot_item_tags)}</b>\n\
+Всего тег{converter(len(hot_item_tags))}: {len(hot_item_tags)}\
+\nПримеры тегов: {', '.join(sample(hot_item_tags,10))}",
+            reply_markup = keyboard(reply_keyboard),
+            parse_mode = ParseMode.HTML
+            )
+            return "tag"
+        elif category == "Свежее":
+            update.message.reply_text(f"Отлично! Ты выбрал '{category.strip()}', напиши желаемый тег, \
+например <b>{choice(fresh_item_tags)}</b>\n\
+Всего тег{converter(len(fresh_item_tags))}: {len(fresh_item_tags)}\
+\nПримеры тегов: {', '.join(sample(fresh_item_tags,10))}",
+            reply_markup = keyboard(reply_keyboard),
+            parse_mode = ParseMode.HTML
+            )
+            return "tag"
 
 def dialog_tags(update,context):
     tag = update.message.text
@@ -42,7 +58,7 @@ def dialog_tags(update,context):
         ["Не надо сортировку, хочу простыню"],
         ["Вернуться в начало"]
         ]
-    reply_fresh = [["Выдать простыню"]]
+    reply_fresh = [["Выдать простыню"],["Вернуться в начало"]]
     if (tag == "Не хочу писать тег, хочу сразу все посты") and (context.user_data['dialog']['category'] \
         == "Горячее"):
         context.user_data["dialog"]['tag'] = tag
@@ -61,14 +77,14 @@ def dialog_tags(update,context):
         return restart(update,context)
 
     elif (tag not in hot_item_tags) and (context.user_data['dialog']['category'] == "Горячее"):
-        update.message.reply_text('Извини, но такого тега у нас нет.. Попробуй еще раз!')
+        update.message.reply_text('Извини, но такого тега у нас нет.. Попробуй еще раз! Пиши без кавычек')
         return "tag"
     elif (tag not in fresh_item_tags) and (context.user_data['dialog']['category'] == "Свежее"):
         update.message.reply_text('Извини, но такого тега у нас нет.. Попробуй еще раз!')
         return "tag"
 
     else:
-        context.user_data["dialog"]['tag'] = tag
+        context.user_data["dialog"]['tag'] = tag.strip()
         if context.user_data["dialog"]["category"] == "Горячее":    
 
             update.message.reply_text(
@@ -77,7 +93,8 @@ def dialog_tags(update,context):
             )
             return "filters"
         elif context.user_data["dialog"]["category"] == "Свежее":
-            reply_keyboard = [["Выдать простыню"]]
+            reply_keyboard = [["Выдать простыню"],
+            ["Вернуться в начало"]]
             
             update.message.reply_text(
                 f'Отлично! Ты выбрал тег "{tag}". Переходим к постам!',
@@ -103,7 +120,7 @@ def dialog_filters(update, context):
         reply_keyboard = [["Вернуться в начало"]]
         
         context.user_data["dialog"]['filter'] = filter
-        update.message.reply_text("Отлично! Теперь напиши количество постов",
+        update.message.reply_text("Отлично! Теперь напиши количество постов (цифра от 1 до 30)",
         reply_markup = keyboard(reply_keyboard))
         return "posts_number"
 
@@ -116,15 +133,23 @@ def dialog_numbers(update,context):
 
     if posts_amount == "Вернуться в начало":
         return restart(update,context)
+    
+    elif posts_amount == "Вернуться на шаг назад":
+        reply_keyboard = [["Вернуться в начало"]]
+        update.message.reply_text("Хорошо, выбирай количество постов (цифра от 1 до 30)",
+        reply_markup = keyboard(reply_keyboard))
+        return "posts_number"
+    
     try:
         posts_amount = int(posts_amount)
+        if posts_amount < 1 or posts_amount > 30: 
+            update.message.reply_text("Введи цифру от 1 до 30")
+            return "posts_number"
     except:
         update.message.reply_text("Введи цифру от 1 до 30")
         return "posts_number"
+
     posts_amount = int(posts_amount)
-    if posts_amount < 1 or posts_amount > 30:
-        update.message.reply_text("Введи цифру от 1 до 30")
-        return "posts_number"
     context.user_data['dialog']['posts_number'] = [posts_amount]
 
     if context.user_data["dialog"]["category"] == "Горячее":
@@ -167,11 +192,7 @@ def dialog_numbers(update,context):
             else:
                 for elem in collection_hot.find().sort('item_comments',-1).limit(posts_amount):
                     return_hot(elem,update,tag,reply_keyboard)
-        elif update.message.text == "Вернуться на шаг назад":
-            update.message.reply_text("Хорошо, выбирай количество постов")
-            return "posts_number"
-        elif posts_amount == "Вернуться в начало":
-            return restart(update,context)
+        
         else:
             return ConversationHandler.END
             
@@ -185,8 +206,9 @@ def dialog_numbers(update,context):
             else:
                 for elem in collection_fresh.find({"item_tags":tag}).sort('item_date_timestamp',-1).limit(posts_amount):
                     return_fresh(elem,update,tag,reply_keyboard)
-        print(context.user_data)
-        return ConversationHandler.END
+
+        else:
+            return ConversationHandler.END
 
 def dialog_fallback(update,context):
     update.message.reply_text("Не надо лишнего, плиз")

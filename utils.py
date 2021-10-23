@@ -1,18 +1,24 @@
-from telegram import ReplyKeyboardMarkup, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime
+from telegram import ReplyKeyboardMarkup, ParseMode
 
 def keyboard(reply_keyboard):
     keyboard = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard = True)
     return keyboard
 
-def inline_keyboard_category():
-    keyboard = [
-        [
-            InlineKeyboardButton('Горячее', callback_data = 'hot'),
-            InlineKeyboardButton('Свежее', callback_data= 'fresh')
-        ]
-    ]
-    return InlineKeyboardMarkup(keyboard)
+def converter(lst):
+    str_lst = str(lst)
+    if 1 < int(str_lst[-1]) < 5 and lst < 10:
+        return "а"
+    elif 10 <= lst <= 20:
+        return "ов"
+    elif 5 <= int(str_lst[-1]) <= 9 and lst > 20:
+        return "ов"
+    elif lst > 20 and int(str_lst[-1]) == 0:
+        return "ов"
+    elif lst > 20 and 1 < int(str_lst[-1]) < 5:
+        return "a"
+    else:
+        return ""
 
 def return_hot(elem,update,tag,reply_keyboard):
     return update.message.reply_text(f"""<b>Название поста:</b> {elem["item_title"]}\n<b>Теги поста:</b> \

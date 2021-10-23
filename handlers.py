@@ -2,8 +2,9 @@ from utils import keyboard
 
 def greet_user(update, context):
     reply_keyboard = [["Выбрать категорию"]]
-    text = 'Привет! Выберем категорию?'
-    print(text)
+    text = 'Привет! Ты попал в Пикабота :) Выберем категорию?'
+    to_console = "Бот запущен"
+    print(to_console)
     
     update.message.reply_text(
         f'{text}',
@@ -11,8 +12,10 @@ def greet_user(update, context):
 
 def talk_to_me(update,context):
     text = update.message.text
+    reply_keyboard = [["Выбрать категорию"]]
     if text != "Выдай еще" or text != "Вернуться на шаг назад":
-        update.message.reply_text(f'Мы пока не можем обработать "{text}", но мы очень стараемся!')
+        update.message.reply_text(f'Мы пока не можем обработать "{text}", но мы очень стараемся!',
+        reply_markup = keyboard(reply_keyboard))
 
 # def dialog_start_inline(update,context):
 #     update.callback_query.answer()
