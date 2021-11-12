@@ -1,7 +1,24 @@
 from datetime import datetime
 from telegram import ReplyKeyboardMarkup, ParseMode
-
+from emoji import emojize
 """Здесь описаны все полезные функции, используемые на проекте"""
+
+# Область эмоджи
+
+USER_EMOJI = [':fire:', ':herb:', ':arrows_clockwise:', ':back:', ':100:', ':clock4:',
+':pencil:', ':diamond_shape_with_a_dot_inside:', ':newspaper:',':fast_forward:',':dizzy:']
+fire_emoji = emojize(USER_EMOJI[0], use_aliases=True)
+fresh_emoji = emojize(USER_EMOJI[1], use_aliases=True)
+restart_emoji= emojize(USER_EMOJI[2], use_aliases=True)
+back_emoji = emojize(USER_EMOJI[3], use_aliases=True)
+rating_emoji = emojize(USER_EMOJI[4], use_aliases=True)
+time_emoji = emojize(USER_EMOJI[5], use_aliases=True)
+comments_emoji = emojize(USER_EMOJI[6], use_aliases=True)
+views_emoji = emojize(USER_EMOJI[7], use_aliases=True)
+blanket_emoji = emojize(USER_EMOJI[8], use_aliases=True)
+notags_emoji = emojize(USER_EMOJI[9], use_aliases=True)
+begin_emoji = emojize(USER_EMOJI[10], use_aliases=True)
+
 
 # Функция для создания клавиатуры в telegram
 

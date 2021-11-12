@@ -1,8 +1,11 @@
+
+from datetime import time
 from mongo import (fresh_item_tags, hot_item_tags, collection_hot, collection_fresh)
 from random import choice, sample
 from telegram.parsemode import ParseMode
 from telegram.ext import ConversationHandler
-from utils import keyboard, return_fresh, return_hot, converter
+from utils import (keyboard, return_fresh, return_hot, converter, fire_emoji, fresh_emoji, rating_emoji,
+restart_emoji,comments_emoji,views_emoji,back_emoji,blanket_emoji,begin_emoji,notags_emoji,time_emoji)
 
 """Данный файл описывает диалог с пользователем"""
 
@@ -10,7 +13,7 @@ from utils import keyboard, return_fresh, return_hot, converter
 
 
 def restart(update, context):
-    reply_keyboard = [["Выбрать категорию"]]
+    reply_keyboard = [[f"Выбрать категорию {begin_emoji}"]]
     update.message.reply_text(
         'Я тебя понял, выбирай категорию',
         reply_markup=keyboard(reply_keyboard))
@@ -21,7 +24,7 @@ def restart(update, context):
 
 
 def dialog_start(update, context):
-    reply_keyboard = [['Горячее'], ['Свежее']]
+    reply_keyboard = [[f'Горячее {fire_emoji}'], [f'Свежее {fresh_emoji}']]
     update.message.reply_text(
         "Ну же, выбирай!",
         reply_markup=keyboard(reply_keyboard)
@@ -33,7 +36,7 @@ def dialog_start(update, context):
 
 
 def dialog_category(update, context):
-    category_lst = ['Горячее', 'Свежее']
+    category_lst = [[f'Горячее {fire_emoji}'], [f'Свежее {fresh_emoji}']]
     category = update.message.text
     if category not in category_lst:
         update.message.reply_text("Пожалуйста, выбери горячее/свежее")  # проверка на попадание в категорию
@@ -42,7 +45,8 @@ def dialog_category(update, context):
         context.user_data["dialog"] = {
             "category": category  # фиксирование в словаре "юзер_дата"
                     }
-        reply_keyboard = [["Не хочу писать тег, хочу сразу все посты"], ["Вернуться в начало"]]
+        reply_keyboard = [[f"Не хочу писать тег, хочу сразу все посты {notags_emoji}"],
+        [f"Вернуться в начало {back_emoji}"]]
         if category == "Горячее":  # вывод пользователю ответа, что выбрано все правильно
             update.message.reply_text(f"Отлично! Ты выбрал '{category.strip()}', напиши желаемый тег, \
 например <b>{choice(hot_item_tags)}</b>\n\
@@ -67,14 +71,14 @@ def dialog_category(update, context):
 
 def dialog_tags(update, context):
     tag = update.message.text
-    reply_keyboard=[["Фильтр по дате (сначала новое)"],
-        ["Фильтр по просмотрам (сначала топ просмотров)"],
-        ["Фильтр по рейтингу (сначала наибольший)"],
-        ["Фильтр по комментариям (сначала много)"],
-        ["Не надо сортировку, хочу простыню"],
-        ["Вернуться в начало"]
+    reply_keyboard=[[f"Фильтр по дате (сначала новое) {time_emoji}"],
+        [f"Фильтр по просмотрам (сначала топ просмотров) {views_emoji}"],
+        [f"Фильтр по рейтингу (сначала наибольший) {rating_emoji}"],
+        [f"Фильтр по комментариям (сначала много) {comments_emoji}"],
+        [f"Не надо сортировку, хочу простыню {blanket_emoji}"],
+        [f"Вернуться в начало {restart_emoji}"]
         ]
-    reply_fresh = [["Выдать простыню"],["Вернуться в начало"]]
+    reply_fresh = [[f"Выдать простыню {blanket_emoji}"],[f"Вернуться в начало {restart_emoji}"]]
     if (tag == "Не хочу писать тег, хочу сразу все посты") and (context.user_data['dialog']['category'] \
         == "Горячее"):
         context.user_data["dialog"]['tag'] = tag
@@ -109,8 +113,8 @@ def dialog_tags(update, context):
             )
             return "filters"
         elif context.user_data["dialog"]["category"] == "Свежее":
-            reply_keyboard = [["Выдать простыню"],
-            ["Вернуться в начало"]]
+            reply_keyboard = [[f"Выдать простыню {blanket_emoji}"],
+            [f"Вернуться в начало {restart_emoji}"]]
             update.message.reply_text(
                 f'Отлично! Ты выбрал тег "{tag}". Переходим к постам!',
                 reply_markup=keyboard(reply_keyboard)
@@ -121,12 +125,12 @@ def dialog_tags(update, context):
 
 
 def dialog_filters(update, context):
-    filters = ["Фильтр по дате (сначала новое)",
-        "Фильтр по просмотрам (сначала топ просмотров)",
-        "Фильтр по рейтингу (сначала наибольший)",
-        "Фильтр по комментариям (сначала много)",
-        "Не надо сортировку, хочу простыню",
-        "Вернуться в начало"
+    filters = [[f"Фильтр по дате (сначала новое) {time_emoji}"],
+        [f"Фильтр по просмотрам (сначала топ просмотров) {views_emoji}"],
+        [f"Фильтр по рейтингу (сначала наибольший) {rating_emoji}"],
+        [f"Фильтр по комментариям (сначала много) {comments_emoji}"],
+        [f"Не надо сортировку, хочу простыню {blanket_emoji}"],
+        [f"Вернуться в начало {restart_emoji}"]
         ]
     filter = update.message.text
     if filter == 'Вернуться в начало':
@@ -135,7 +139,7 @@ def dialog_filters(update, context):
         update.message.reply_text('Введи правильный фильтр')
         return "filters"
     else:
-        reply_keyboard = [["Вернуться в начало"]]
+        reply_keyboard = [[f"Вернуться в начало {restart_emoji}"]]
         context.user_data["dialog"]['filter'] = filter
         update.message.reply_text("Отлично! Теперь напиши количество постов (цифра от 1 до 30)",
         reply_markup=keyboard(reply_keyboard))
@@ -148,12 +152,12 @@ def dialog_filters(update, context):
 def dialog_numbers(update, context):
     tag = context.user_data['dialog']['tag']
     posts_amount = update.message.text
-    reply_keyboard = [["Вернуться в начало"], ["Вернуться на шаг назад"]]
+    reply_keyboard = [[f"Вернуться в начало {restart_emoji}"], [f"Вернуться на шаг назад {back_emoji}"]]
     filter = context.user_data['dialog']['filter']
     if posts_amount == "Вернуться в начало":
         return restart(update, context)
     elif posts_amount == "Вернуться на шаг назад":
-        reply_keyboard = [["Вернуться в начало"]]
+        reply_keyboard = [[f"Вернуться в начало {restart_emoji}"]]
         update.message.reply_text(
             "Хорошо, выбирай количество постов (цифра от 1 до 30)",
             reply_markup=keyboard(reply_keyboard))
