@@ -11,20 +11,20 @@ import certifi
 
 cert = certifi.where()
 
-#����������� � �� (��������� ����������� � �� ����� ������� ������� (MyCluster))
+#Подключение к дб (Настройки подключения к БД нужно описать вручную) (MyCluster))
 cluster = MongoClient(MyCluster, tlsCAFile=cert)
 db = cluster["Parcing_db"]
 collection_hot = db["Hot_posts_info"]
 collection_fresh = db["Fresh_posts_info"]
 
 
-"""������� ��� �������� ����� ������ �� ������"""
+"""Функция для парсинга новых статей на Пикабу"""
 
-#��������: ��������� � ����� ���������� �� Mongo DB, � ����� � JSON ���� ��� ��������� posts_dict.json, ���� ����������� - ���������
-#����� ���-�� ������� ��� �������� - num_of_pages
+#Описание: Парситься и будет заливаться на Mongo DB, а также в JSON файл под названием posts_dict.json, если отсутствует - создатся
+#Выбор кол-ва страниц для парсинга - num_of_pages
 
 def parse_new():
-    num_of_pages = 50
+    num_of_pages = 100
     for i in range(0,num_of_pages):
         url = "https://pikabu.ru/new?page=" + str(i + 1)
 
@@ -101,13 +101,13 @@ def parse_new():
 
 
 
-"""������� ��� �������� ������� ������ �� ������"""
+"""Функция для парсинга горячих статей на Пикабу"""
 
-#��������: ��������� � ����� ���������� �� Mongo DB, � ����� � JSON ���� ��� ��������� hot_posts_dict.json, ���� ����������� - ���������
-#����� ���-�� ������� ��� �������� - num_of_pages
+#Описание: Парситься и будет заливаться на Mongo DB, а также в JSON файл под названием hot_posts_dict.json, если отсутствует - создастся
+#Выбор кол-ва страниц для парсинга - num_of_pages
 
 def parse_hot():
-    num_of_pages = 50
+    num_of_pages = 100
     for i in range(0,num_of_pages):
         url = "https://pikabu.ru/?page=" + str(i + 1)
 

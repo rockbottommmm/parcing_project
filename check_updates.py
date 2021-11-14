@@ -13,7 +13,7 @@ import schedule
 
 cert = certifi.where()
 
-#����������� � �� (��������� ����������� � �� ����� ������� ������� (MyCluster))
+#Подключение к дб (Настройки подключения к БД нужно описать вручную (MyCluster))
 
 cluster = MongoClient(MyCluster, tlsCAFile=cert)
 db = cluster["Parcing_db"]
@@ -21,10 +21,10 @@ collection_hot = db["Hot_posts_info"]
 collection_fresh = db["Fresh_posts_info"]
 
 
-"""������� ��� ��������� � ���������� ����� ������ (������ ����������� ��������)"""
+"""Функция для просмотра и обновление новых статей (должно запускаться циклично)"""
 
-#��������: ��������� � ����� ����������� �� Mongo DB, � ����� � JSON ���� ��� ��������� posts_dict.json, ���� ����������� - ���������
-#����� ���-�� ������� ��� �������� - num_of_pages
+#Описание: Парситься и будет обновляться на Mongo DB, а также в JSON файл под названием posts_dict.json, если отсутствует - создастся
+#Выбор кол-ва страниц для парсинга - num_of_pages
 
 def check_new_posts():
     with open('posts_dict.json') as file:
@@ -127,10 +127,10 @@ def check_new_posts():
     
     return fresh_posts
 
-"""������� ��� ��������� � ���������� ������� ������ (������ ����������� ��������)"""
+"""Функция для просмотра и обновление горячих статей (должно запускаться циклично)"""
 
-#��������: ��������� � ����� ����������� �� Mongo DB, � ����� � JSON ���� ��� ��������� hot_posts_dict.json, ���� ����������� - ���������
-#����� ���-�� ������� ��� �������� - num_of_pages
+#Описание: Парситься и будет обновляться на Mongo DB, а также в JSON файл под названием hot_posts_dict.json, если отсутствует - создастся
+#Выбор кол-ва страниц для парсинга - num_of_pages
 
 def check_hot_posts():
     with open('hot_posts_dict.json') as file:
@@ -253,7 +253,7 @@ def main():
 if __name__ == '__main__':
     main()
 
-# schedule.every(10).minutes.do(main)
+schedule.every(10).minutes.do(main)
 
-# while __name__ == '__main__':
-#     schedule.run_pending()
+while __name__ == '__main__':
+    schedule.run_pending()
