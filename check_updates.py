@@ -253,7 +253,7 @@ def main():
 if __name__ == '__main__':
     main()
 
-schedule.every(10).minutes.do(main)
+# schedule.every(10).minutes.do(main)
 
-while __name__ == '__main__':
-    schedule.run_pending()
+# while __name__ == '__main__':
+#     schedule.run_pending()
